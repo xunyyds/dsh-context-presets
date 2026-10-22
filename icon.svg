@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="dsh-context-presets">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4b8bff"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#g)"/>
+  <!-- a context "window": brackets around a capacity bar -->
+  <path d="M18 22h-4v20h4M46 22h4v20h-4" fill="none" stroke="#fff" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+  <rect x="22" y="28" width="20" height="8" rx="4" fill="#fff" opacity=".35"/>
+  <rect x="22" y="28" width="13" height="8" rx="4" fill="#fff"/>
+  <circle cx="32" cy="18" r="2.4" fill="#fff" opacity=".9"/>
+</svg>

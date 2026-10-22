@@ -1,0 +1,59 @@
+{
+  "name": "dsh-context-presets",
+  "version": "0.3.0",
+  "description": "为 DeepSeek Harness 的每个模型单独设定上下文窗口：右键输入框旁的窗口芯片切换档位，含跟随上游、自定义弹窗与界面刷新。",
+  "icon": "icon.svg",
+  "author": "weekup",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "icon.svg"
+  ],
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.2.0-rc.2"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.2": "compatible"
+      }
+    }
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "context",
+    "context-window",
+    "token",
+    "llm"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test --test-isolation=none \"test/*.test.mjs\""
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2"
+  },
+  "license": "MIT"
+}
