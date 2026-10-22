@@ -6,12 +6,13 @@ import { h } from './dom.js';
 
 export function ChipPanel(props) {
   const {
-    provider, model, current, defaultText, ceiling, busy, draft, error,
+    provider, model, current, defaultText, liveWindow, ceiling, busy, draft, error,
     onPick, onDraft, onApply, onSettings, onReload, onClose,
   } = props;
 
   const currentText = current === undefined ? '跟随上游' : formatCapacity(current);
   const fallbackText = defaultText === undefined ? '未知' : formatCapacity(defaultText);
+  const liveText = Number.isInteger(liveWindow) ? formatCapacity(liveWindow) : null;
 
   const presets = [h('button', {
     key: 'follow',
@@ -38,8 +39,10 @@ export function ChipPanel(props) {
   return h('div', { className: 'cp-pop', role: 'dialog', 'aria-label': '上下文窗口' },
     h('div', { className: 'cp-pop-head' },
       h('div', { className: 'cp-pop-route' }, `${provider} / ${model}`),
+      liveText !== null && h('div', { className: 'cp-status' },
+        h('span', null, '生效中 ', h('b', null, liveText))),
       h('div', { className: 'cp-status' },
-        h('span', null, '当前 ', h('b', null, currentText)),
+        h('span', null, '当前设定 ', h('b', null, currentText)),
         h('span', null, '默认（上游） ', h('b', null, fallbackText)),
       ),
       Number.isInteger(ceiling) && h('div', { className: 'cp-hint' }, `上游上限 ${formatCapacity(ceiling)}`),

@@ -22,11 +22,7 @@ export function isValidCapacity(value) {
 }
 
 function scaled(value, unit, suffix) {
-  const ratio = Math.round((value / unit) * 100) / 100;
-  const text = Number.isInteger(ratio)
-    ? String(ratio)
-    : String(ratio).replace(/0+$/, '').replace(/\.$/, '');
-  return `${text}${suffix}`;
+  return `${Math.floor(value / unit)}${suffix}`;
 }
 
 export function formatCapacity(value) {
@@ -36,7 +32,7 @@ export function formatCapacity(value) {
 export function shortLabel(value) {
   if (value === null || value === undefined) return '跟随上游';
   if (!isValidCapacity(value)) return String(value);
-  if (value >= 1000000) return scaled(value, 1000000, 'M');
+  if (value >= 1000000 && value % 1000000 === 0) return scaled(value, 1000000, 'M');
   if (value >= 1000) return scaled(value, 1000, 'K');
   return '<1K';
 }

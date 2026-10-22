@@ -10,7 +10,11 @@ export function registerSlots(ctx, service) {
     inject: (sessionId) => {
       const directories = ctx.modelDirectories ?? ctx.get?.('modelDirectories');
       const directory = directories.directoryFor(sessionId);
-      return { directory: directory.store, load: () => directory.load(), service };
+      return {
+        directory: directory.store,
+        load: () => directory.load(),
+        service,
+      };
     },
   }, ComposerChip));
 

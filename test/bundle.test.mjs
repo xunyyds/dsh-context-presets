@@ -489,6 +489,23 @@ test('a failing describe becomes an error, never a crash', async () => {
   assert.match(textOf(tree), /boom/);
 });
 
+test('the chip prefers the live session window over the configured value', async () => {
+  const React = createReact();
+  const api = loadBundle(React, { '@deepseek-ai/dsh-client-ui-primitives': makePrimitives(React) });
+  const chip = chipOf(registrations(api, makeSettings(DOC)));
+  const props = chip.value.options.inject('session-1');
+  const useProjection = (key) => (key === 'contextPressure' ? { contextWindow: 1000000 } : undefined);
+  const element = React.createElement(chip.value.component, { ...props, useProjection });
+  const tree = await settle(React, element);
+  const button = findChip(tree);
+  assert.equal(textOf(button).trim(), '1M');
+  const opened = await act(React, () => {
+    findChip(tree).props.onClick();
+  }, element);
+  assert.match(textOf(opened), /生效中\s*1M/);
+  assert.match(textOf(opened), /默认（上游）\s*128K/);
+});
+
 test('without ui primitives the plugin falls back to its own menu', async () => {
   const React = createReact();
   const api = loadBundle(React);
@@ -516,7 +533,7 @@ test('left click opens the status popover with current and default values', asyn
   const pop = findAll(tree, 'div').find((node) => node.props?.className === 'cp-pop');
   assert.ok(pop, 'popover did not open');
   const text = textOf(pop);
-  assert.match(text, /当前\s*跟随上游/);
+  assert.match(text, /当前设定\s*跟随上游/);
   assert.match(text, /默认（上游）\s*128K/);
   const presets = findAll(pop, 'button').filter((node) => node.props?.className === 'cp-btn');
   assert.equal(presets[0] ? textOf(presets[0]).trim() : '', '跟随上游');

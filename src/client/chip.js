@@ -16,10 +16,16 @@ const ZERO_RECT = {
   left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0,
 };
 
-export function ComposerChip({ directory, load, service }) {
+export function ComposerChip({
+  directory, load, service, useProjection,
+}) {
   const state = useStore(directory);
   const provider = state?.current?.provider;
   const model = state?.current?.model;
+  const pressure = typeof useProjection === 'function' ? useProjection('contextPressure') : undefined;
+  const liveWindow = Number.isInteger(pressure?.contextWindow) && pressure.contextWindow > 0
+    ? pressure.contextWindow
+    : undefined;
   const [view, setView] = React.useState(null);
   const [panelOpen, setPanelOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -132,7 +138,7 @@ export function ComposerChip({ directory, load, service }) {
     provider, model, current, effective: defaultText, ceiling, busy,
   });
   const selectedId = selectedItemId(current);
-  const label = current === undefined ? shortLabel(defaultText) : shortLabel(current);
+  const label = shortLabel(liveWindow ?? (current === undefined ? defaultText : current));
 
   const chip = h('button', {
     key: 'chip',
@@ -195,6 +201,7 @@ export function ComposerChip({ directory, load, service }) {
       model,
       current,
       defaultText,
+      liveWindow,
       ceiling,
       busy,
       draft,
