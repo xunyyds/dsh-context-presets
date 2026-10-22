@@ -141,7 +141,7 @@ export function ComposerChip({
     provider, model, current, effective: defaultText, ceiling, busy, managed,
   });
   const selectedId = selectedItemId(current);
-  const label = shortLabel(liveWindow ?? (current === undefined ? defaultText : current));
+  const label = shortLabel(current === undefined ? (liveWindow ?? defaultText) : current);
 
   const chip = h('button', {
     key: 'chip',
