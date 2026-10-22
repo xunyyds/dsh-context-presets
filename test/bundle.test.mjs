@@ -506,6 +506,32 @@ test('the chip prefers the live session window over the configured value', async
   assert.match(textOf(opened), /默认（上游）\s*128K/);
 });
 
+test('an unmanaged route shows the live window and locks the tiers', async () => {
+  const React = createReact();
+  const api = loadBundle(React, { '@deepseek-ai/dsh-client-ui-primitives': makePrimitives(React) });
+  const settings = makeSettings(DOC);
+  const chip = chipOf(registrations(api, settings));
+  const props = chip.value.options.inject('session-1');
+  const unmanaged = {
+    getSnapshot: () => ({ current: { provider: 'workbuddy', model: 'deepseek-v4.1-flash' } }),
+    subscribe: () => () => {},
+  };
+  const useProjection = (key) => (key === 'contextPressure' ? { contextWindow: 1000000 } : undefined);
+  const element = React.createElement(chip.value.component, {
+    ...props, directory: unmanaged, useProjection,
+  });
+  let tree = await settle(React, element);
+  assert.equal(textOf(findChip(tree)).trim(), '1M');
+  tree = await act(React, () => {
+    findChip(tree).props.onClick();
+  }, element);
+  const text = textOf(tree);
+  assert.match(text, /生效中\s*1M/);
+  assert.match(text, /不由 llm-pi-ai 管理/);
+  const follow = findAll(tree, 'button').find((node) => textOf(node).trim() === '跟随上游');
+  assert.equal(follow.props.disabled, true);
+});
+
 test('without ui primitives the plugin falls back to its own menu', async () => {
   const React = createReact();
   const api = loadBundle(React);

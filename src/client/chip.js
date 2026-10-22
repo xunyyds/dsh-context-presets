@@ -1,6 +1,6 @@
 import { FOLLOW_ID, parseCapacity, parsePresetId, shortLabel } from '../core/capacity.js';
 
-import { currentCapacity, defaultCapacity, upstreamCapacity } from '../core/document.js';
+import { currentCapacity, defaultCapacity, profileOf, upstreamCapacity } from '../core/document.js';
 
 import { buildMenuItems, selectedItemId } from '../core/menu-items.js';
 import { planCapacity } from '../core/plan.js';
@@ -131,11 +131,14 @@ export function ComposerChip({
 
   const current = currentCapacity(view, provider, model);
   const known = upstream instanceof Map ? upstream.get(model) : undefined;
-  const defaultText = defaultCapacity(view, provider, model, upstream);
-  const ceiling = upstreamCapacity(view, provider, model, upstream);
+  const managed = profileOf(view, provider) !== undefined;
+  const defaultText = managed
+    ? defaultCapacity(view, provider, model, upstream)
+    : (liveWindow ?? defaultCapacity(view, provider, model, upstream));
+  const ceiling = managed ? upstreamCapacity(view, provider, model, upstream) : undefined;
   const custom = current !== undefined;
   const items = buildMenuItems({
-    provider, model, current, effective: defaultText, ceiling, busy,
+    provider, model, current, effective: defaultText, ceiling, busy, managed,
   });
   const selectedId = selectedItemId(current);
   const label = shortLabel(liveWindow ?? (current === undefined ? defaultText : current));
@@ -206,6 +209,7 @@ export function ComposerChip({
       busy,
       draft,
       error,
+      managed,
       onPick: (id) => pick(id, false),
       onDraft: setDraft,
       onApply: applyDraft,

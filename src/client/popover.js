@@ -6,10 +6,11 @@ import { h } from './dom.js';
 
 export function ChipPanel(props) {
   const {
-    provider, model, current, defaultText, liveWindow, ceiling, busy, draft, error,
+    provider, model, current, defaultText, liveWindow, ceiling, busy, draft, error, managed,
     onPick, onDraft, onApply, onSettings, onReload, onClose,
   } = props;
 
+  const locked = Boolean(busy) || !managed;
   const currentText = current === undefined ? '跟随上游' : formatCapacity(current);
   const fallbackText = defaultText === undefined ? '未知' : formatCapacity(defaultText);
   const liveText = Number.isInteger(liveWindow) ? formatCapacity(liveWindow) : null;
@@ -18,7 +19,7 @@ export function ChipPanel(props) {
     key: 'follow',
     type: 'button',
     className: 'cp-btn',
-    disabled: busy,
+    disabled: locked,
     'aria-pressed': current === undefined ? 'true' : 'false',
     onClick: () => onPick(FOLLOW_ID),
   }, '跟随上游')];
@@ -29,7 +30,7 @@ export function ChipPanel(props) {
       key: preset,
       type: 'button',
       className: 'cp-btn',
-      disabled: busy || beyond,
+      disabled: locked || beyond,
       'aria-pressed': current === preset ? 'true' : 'false',
       title: beyond ? '超过上游声明的上限' : undefined,
       onClick: () => onPick(presetId(preset)),
@@ -46,6 +47,7 @@ export function ChipPanel(props) {
         h('span', null, '默认（上游） ', h('b', null, fallbackText)),
       ),
       Number.isInteger(ceiling) && h('div', { className: 'cp-hint' }, `上游上限 ${formatCapacity(ceiling)}`),
+      !managed && h('div', { className: 'cp-hint' }, '该提供方不由 llm-pi-ai 管理，仅显示生效值。'),
     ),
     h('div', { className: 'cp-grid' }, presets),
     h('div', { className: 'cp-row' },

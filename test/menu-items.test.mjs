@@ -62,6 +62,14 @@ test('buildMenuItems honours the busy flag', () => {
   assert.equal(items.find((item) => item.id === 'settings').disabled, undefined);
 });
 
+test('buildMenuItems locks every tier on an unmanaged route', () => {
+  const items = buildMenuItems({ ...base, managed: false });
+  assert.equal(items.find((item) => item.id === FOLLOW_ID).disabled, true);
+  assert.equal(items.find((item) => item.id === presetId(32000)).disabled, true);
+  assert.ok(items.find((item) => item.id === 'notice'));
+  assert.ok(items.find((item) => item.id === 'settings'));
+});
+
 test('selectedItemId maps follow and presets, but not custom values', () => {
   assert.equal(selectedItemId(undefined), FOLLOW_ID);
   assert.equal(selectedItemId(128000), presetId(128000));
