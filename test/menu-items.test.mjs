@@ -17,7 +17,7 @@ const base = {
 
 test('menuHead summarizes route and current state', () => {
   assert.equal(menuHead('deepseek', 'chat', undefined, 128000), 'deepseek / chat · 跟随 128K');
-  assert.equal(menuHead('deepseek', 'chat', 150000, 128000), 'deepseek / chat · 150,000 (150K)');
+  assert.equal(menuHead('deepseek', 'chat', 150000, 128000), 'deepseek / chat · 150K');
 });
 
 test('followLabel shows the upstream value when known', () => {

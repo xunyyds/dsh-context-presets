@@ -21,23 +21,24 @@ export function isValidCapacity(value) {
   return Number.isInteger(value) && value >= MIN_CAPACITY;
 }
 
+function scaled(value, unit, suffix) {
+  const ratio = Math.round((value / unit) * 100) / 100;
+  const text = Number.isInteger(ratio)
+    ? String(ratio)
+    : String(ratio).replace(/0+$/, '').replace(/\.$/, '');
+  return `${text}${suffix}`;
+}
+
 export function formatCapacity(value) {
-  if (value === null || value === undefined) return '跟随上游';
-  if (!isValidCapacity(value)) return String(value);
-  const digits = value.toLocaleString('en-US');
-  if (value >= 1000000 && value % 100000 === 0) return `${digits} (${value / 1000000}M)`;
-  if (value >= 1000 && value % 1000 === 0) return `${digits} (${value / 1000}K)`;
-  return digits;
+  return shortLabel(value);
 }
 
 export function shortLabel(value) {
   if (value === null || value === undefined) return '跟随上游';
-  if (value >= 1000000 && value % 100000 === 0) {
-    const millions = value / 1000000;
-    return `${Number.isInteger(millions) ? millions : millions.toFixed(1)}M`;
-  }
-  if (value >= 1000 && value % 1000 === 0) return `${value / 1000}K`;
-  return String(value);
+  if (!isValidCapacity(value)) return String(value);
+  if (value >= 1000000) return scaled(value, 1000000, 'M');
+  if (value >= 1000) return scaled(value, 1000, 'K');
+  return '<1K';
 }
 
 export function presetId(value) {

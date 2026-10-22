@@ -1,5 +1,7 @@
 export const MODEL_NS = 'llm-pi-ai';
 
+export const DSH_DEFAULT_CONTEXT_WINDOW = 262144;
+
 export function modelNamespace(described) {
   const namespaces = Array.isArray(described?.namespaces) ? described.namespaces : [];
   return namespaces.find((entry) => entry?.ns === MODEL_NS) ?? null;
@@ -48,7 +50,13 @@ export function providerDefault(view, provider) {
 export function followCapacity(view, provider, model) {
   const declared = declaredCapacity(view, provider, model);
   if (declared !== undefined) return declared;
-  return providerDefault(view, provider);
+  return providerDefault(view, provider) ?? DSH_DEFAULT_CONTEXT_WINDOW;
+}
+
+export function defaultCapacity(view, provider, model, discovered) {
+  const known = discovered instanceof Map ? discovered.get(model) : undefined;
+  if (Number.isInteger(known) && known > 0) return known;
+  return followCapacity(view, provider, model);
 }
 
 export function upstreamCapacity(view, provider, model, discovered) {

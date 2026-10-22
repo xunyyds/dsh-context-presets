@@ -7,6 +7,16 @@ export function unwrap(result) {
   return result.value;
 }
 
+function pickEntries(entries) {
+  const map = new Map();
+  for (const entry of entries) {
+    if (typeof entry?.id !== 'string') continue;
+    if (!Number.isInteger(entry.contextWindow) || entry.contextWindow <= 0) continue;
+    map.set(entry.id, entry.contextWindow);
+  }
+  return map;
+}
+
 export function createService(ctx) {
   const settings = ctx.remote?.settings;
   const llm = ctx.remote?.llm;
@@ -35,35 +45,44 @@ export function createService(ctx) {
     throw failure ?? new Error('设置写入失败');
   }
 
-  async function fetchUpstream(provider) {
+  function probeOf(view, provider) {
+    const profile = view?.value?.providers?.[provider];
+    if (!profile || typeof profile !== 'object') return {};
+    const probe = { provider };
+    if (typeof profile.baseURL === 'string' && profile.baseURL !== '') probe.baseURL = profile.baseURL;
+    if (typeof profile.api === 'string' && profile.api !== '') probe.api = profile.api;
+    return probe;
+  }
+
+  async function fetchUpstream(view, provider) {
     const call = llm?.discoverModels;
     if (typeof call !== 'function') return new Map();
     try {
-      const result = await call.call(llm, MODEL_NS, { provider });
+      const request = probeOf(view, provider);
+      const result = await call.call(llm, MODEL_NS, request);
       if (!result?.ok) return new Map();
-      const entries = Array.isArray(result.value) ? result.value : [];
-      const map = new Map();
-      for (const entry of entries) {
-        if (typeof entry?.id !== 'string') continue;
-        if (!Number.isInteger(entry.contextWindow) || entry.contextWindow <= 0) continue;
-        map.set(entry.id, entry.contextWindow);
-      }
-      return map;
+      return pickEntries(Array.isArray(result.value) ? result.value : []);
     } catch {
       return new Map();
     }
   }
 
-  function upstream(provider) {
+  function upstream(provider, view) {
     if (typeof provider !== 'string' || provider === '') return Promise.resolve(new Map());
     const cached = discovery.get(provider);
     if (cached !== undefined) return cached;
-    const pending = fetchUpstream(provider);
+    const pending = fetchUpstream(view, provider)
+      .then((map) => map)
+      .catch(() => new Map());
     discovery.set(provider, pending);
     return pending;
   }
 
   function forget(provider) {
+    if (typeof provider !== 'string' || provider === '') {
+      discovery.clear();
+      return;
+    }
     discovery.delete(provider);
   }
 

@@ -517,7 +517,7 @@ test('left click opens the status popover with current and default values', asyn
   assert.ok(pop, 'popover did not open');
   const text = textOf(pop);
   assert.match(text, /当前\s*跟随上游/);
-  assert.match(text, /默认（上游）\s*128,000/);
+  assert.match(text, /默认（上游）\s*128K/);
   const presets = findAll(pop, 'button').filter((node) => node.props?.className === 'cp-btn');
   assert.equal(presets[0] ? textOf(presets[0]).trim() : '', '跟随上游');
   assert.ok(presets.some((node) => textOf(node).trim() === '1M'));

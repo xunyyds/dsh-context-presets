@@ -1,8 +1,8 @@
 import { formatCapacity, parseCapacity, shortLabel } from '../core/capacity.js';
 
 import {
-  customizationCount, declaredCapacity, knownModels, providerCustomizationCount,
-  providerDefault, providersOf, upstreamCapacity,
+  customizationCount, declaredCapacity, defaultCapacity, knownModels,
+  providerCustomizationCount, providersOf, upstreamCapacity,
 } from '../core/document.js';
 
 import { planBulk, planCapacity } from '../core/plan.js';
@@ -60,24 +60,25 @@ export function SettingsPanel({ service }) {
     return () => { epoch.current += 1; };
   }, [refresh]);
 
-  const loadUpstream = React.useCallback(async (provider, force) => {
+  const loadUpstream = React.useCallback(async (provider, force, snapshot) => {
     if (force) service.forget(provider);
     setProbing((prev) => ({ ...prev, [provider]: true }));
     try {
-      const map = await service.upstream(provider);
+      const map = await service.upstream(provider, snapshot ?? view);
       setUpstreams((prev) => ({ ...prev, [provider]: map }));
     } finally {
       setProbing((prev) => ({ ...prev, [provider]: false }));
     }
-  }, [service]);
+  }, [service, view]);
 
   React.useEffect(() => {
     if (view === null) return;
     for (const provider of providersOf(view)) {
       if (upstreams[provider.id] !== undefined) continue;
-      void loadUpstream(provider.id, false);
+      if (probing[provider.id] === true) continue;
+      void loadUpstream(provider.id, false, view);
     }
-  }, [view, upstreams, loadUpstream]);
+  }, [view, upstreams, probing, loadUpstream]);
 
   const save = React.useCallback(async (build) => {
     setBusy(true);
@@ -271,12 +272,10 @@ export function SettingsPanel({ service }) {
       }, probing[provider.id] === true ? '探测中…' : '探测上游'),
     );
 
-    const routeDefault = view === null ? undefined : providerDefault(view, provider.id);
     const bodies = provider.models.map((model) => {
       const key = keyOf(provider.id, model.id);
       const declared = declaredCapacity(view, provider.id, model.id);
-      const upstreamKnown = map instanceof Map ? map.get(model.id) : undefined;
-      const follow = upstreamKnown ?? declared ?? routeDefault;
+      const follow = defaultCapacity(view, provider.id, model.id, map);
       const ceiling = upstreamCapacity(view, provider.id, model.id, map);
       const current = model.capacity;
       const state = modelState(current, declared);

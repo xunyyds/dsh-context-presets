@@ -1,8 +1,6 @@
 import { FOLLOW_ID, parseCapacity, parsePresetId, shortLabel } from '../core/capacity.js';
 
-import {
-  currentCapacity, followCapacity, upstreamCapacity,
-} from '../core/document.js';
+import { currentCapacity, defaultCapacity, upstreamCapacity } from '../core/document.js';
 
 import { buildMenuItems, selectedItemId } from '../core/menu-items.js';
 import { planCapacity } from '../core/plan.js';
@@ -55,12 +53,12 @@ export function ComposerChip({ directory, load, service }) {
   React.useEffect(() => {
     let live = true;
     setUpstream(null);
-    if (typeof provider !== 'string' || provider === '') return undefined;
-    void service.upstream(provider).then((map) => {
+    if (typeof provider !== 'string' || provider === '' || view === null) return undefined;
+    void service.upstream(provider, view).then((map) => {
       if (live) setUpstream(map);
     });
     return () => { live = false; };
-  }, [provider, service]);
+  }, [provider, view, service]);
 
   React.useEffect(() => {
     if (!panelOpen) return undefined;
@@ -126,18 +124,15 @@ export function ComposerChip({ directory, load, service }) {
   if (typeof model !== 'string' || model === '') return null;
 
   const current = currentCapacity(view, provider, model);
-  const declared = followCapacity(view, provider, model);
   const known = upstream instanceof Map ? upstream.get(model) : undefined;
-  const upstreamValue = known ?? declared;
+  const defaultText = defaultCapacity(view, provider, model, upstream);
   const ceiling = upstreamCapacity(view, provider, model, upstream);
   const custom = current !== undefined;
   const items = buildMenuItems({
-    provider, model, current, effective: upstreamValue, ceiling, busy,
+    provider, model, current, effective: defaultText, ceiling, busy,
   });
   const selectedId = selectedItemId(current);
-  const label = current === undefined
-    ? (upstreamValue === undefined ? '跟随' : shortLabel(upstreamValue))
-    : shortLabel(current);
+  const label = current === undefined ? shortLabel(defaultText) : shortLabel(current);
 
   const chip = h('button', {
     key: 'chip',
@@ -199,7 +194,7 @@ export function ComposerChip({ directory, load, service }) {
       provider,
       model,
       current,
-      upstreamValue,
+      defaultText,
       ceiling,
       busy,
       draft,

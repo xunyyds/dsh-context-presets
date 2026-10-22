@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  MODEL_NS, customizationCount, currentCapacity, declaredCapacity,
-  effectiveCapacity, followCapacity, modelNamespace, modelsOf, providerDefault,
-  providersOf, upstreamCapacity,
+  DSH_DEFAULT_CONTEXT_WINDOW, MODEL_NS, customizationCount, currentCapacity, declaredCapacity,
+  defaultCapacity, effectiveCapacity, followCapacity, modelNamespace, modelsOf,
+  providerDefault, providersOf, upstreamCapacity,
 } from '../src/core/document.js';
 
 const doc = {
@@ -55,7 +55,19 @@ test('followCapacity prefers the declared window over the route default', () => 
   assert.equal(followCapacity(doc, 'catalog', 'a'), 128000);
   assert.equal(followCapacity(doc, 'catalog', 'b'), 64000);
   assert.equal(followCapacity(doc, 'catalog', 'zzz'), 262144);
-  assert.equal(followCapacity(doc, 'list', 'zzz'), undefined);
+  assert.equal(followCapacity(doc, 'list', 'zzz'), DSH_DEFAULT_CONTEXT_WINDOW);
+});
+
+test('followCapacity never leaves a model without a default', () => {
+  const bare = { value: { providers: { p: { models: [{ id: 'm', name: 'm' }] } } } };
+  assert.equal(followCapacity(bare, 'p', 'm'), DSH_DEFAULT_CONTEXT_WINDOW);
+  assert.equal(followCapacity(undefined, 'p', 'm'), DSH_DEFAULT_CONTEXT_WINDOW);
+});
+
+test('defaultCapacity lets a discovered value outrank the catalog', () => {
+  assert.equal(defaultCapacity(doc, 'catalog', 'a', new Map([['a', 200000]])), 200000);
+  assert.equal(defaultCapacity(doc, 'catalog', 'a', new Map()), 128000);
+  assert.equal(defaultCapacity(doc, 'catalog', 'zzz', new Map()), DSH_DEFAULT_CONTEXT_WINDOW);
 });
 
 test('upstreamCapacity prefers discovered values and never invents one', () => {

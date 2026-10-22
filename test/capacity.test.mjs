@@ -42,19 +42,22 @@ test('isValidCapacity mirrors the pi-ai schema', () => {
   assert.equal(isValidCapacity('128000'), false);
 });
 
-test('shortLabel compacts round numbers only', () => {
+test('shortLabel always renders a k or m unit', () => {
   assert.equal(shortLabel(128000), '128K');
   assert.equal(shortLabel(1000000), '1M');
   assert.equal(shortLabel(1500000), '1.5M');
-  assert.equal(shortLabel(1234), '1234');
+  assert.equal(shortLabel(1234), '1.23K');
+  assert.equal(shortLabel(96000), '96K');
+  assert.equal(shortLabel(704512), '704.51K');
+  assert.equal(shortLabel(3), '<1K');
   assert.equal(shortLabel(undefined), '跟随上游');
 });
 
-test('formatCapacity groups digits', () => {
+test('formatCapacity shares the short label', () => {
   assert.equal(formatCapacity(undefined), '跟随上游');
-  assert.equal(formatCapacity(128000), '128,000 (128K)');
-  assert.equal(formatCapacity(1500000), '1,500,000 (1.5M)');
-  assert.equal(formatCapacity(1234), '1,234');
+  assert.equal(formatCapacity(128000), '128K');
+  assert.equal(formatCapacity(1500000), '1.5M');
+  assert.equal(formatCapacity(262144), '262.14K');
 });
 
 test('preset ids round-trip', () => {
